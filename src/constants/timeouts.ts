@@ -1,0 +1,8 @@
+export const MAX_HTML_BYTES = 512 * 1024;
+export const FACEBOOK_HTML_READ_BYTES = 128 * 1024;
+export const FETCH_TIMEOUT_MS = 20_000;
+export const FACEBOOK_FETCH_TIMEOUT_MS = 10_000;
+export const CRAWLER_FETCH_TIMEOUT_MS = 10_000;
+export const CRAWLER_PARALLEL_WAVE_SIZE = 3;
+export const OEMBED_TIMEOUT_MS = 10_000;
+export const LINKEDIN_FETCH_TIMEOUT_MS = 8_000;
