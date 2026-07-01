@@ -1,6 +1,6 @@
 {
   "name": "@dokall/link-preview",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Direct link unfurling (Open Graph + platform oEmbed) without third-party preview APIs",
   "license": "MIT",
   "author": "Dokall <dev@dokall.com> (https://dokall.com)",
