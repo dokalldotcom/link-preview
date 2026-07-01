@@ -9,6 +9,8 @@ export const FACEBOOK_BOT_UA =
 export const GOOGLEBOT_UA =
   "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" as const;
 
+export const TELEGRAMBOT_UA = "TelegramBot (like TwitterBot)" as const;
+
 export const FACEBOOK_LETTER_USER_AGENTS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 export const FACEBOOK_RANDOM_LETTER_COUNT = 3;
 
@@ -22,16 +24,17 @@ export const DIRECT_PREVIEW_USER_AGENTS = [
   "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)",
   "LinkedInBot/1.0 (compatible; Mozilla/5.0; +https://www.linkedin.com/)",
   "Facebot",
-  "TelegramBot (like TwitterBot)",
+  TELEGRAMBOT_UA,
   "WhatsApp/2.0",
   BROWSER_USER_AGENT,
 ] as const;
 
 export type PreviewUserAgent = (typeof DIRECT_PREVIEW_USER_AGENTS)[number];
 
-/** Sites behind Cloudflare often allow verified crawlers — try Googlebot first. */
+/** Sites behind Cloudflare often allow verified crawlers — try known bots first. */
 export const CLOUDFLARE_PRIORITY_UAS = [
   GOOGLEBOT_UA,
+  TELEGRAMBOT_UA,
   "Twitterbot/1.0",
   "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
 ] as const;
@@ -39,6 +42,7 @@ export const CLOUDFLARE_PRIORITY_UAS = [
 /** ChatGPT blocks facebookexternalhit (403) — try these crawlers first. */
 export const CHATGPT_PRIORITY_UAS = [
   GOOGLEBOT_UA,
+  TELEGRAMBOT_UA,
   "Twitterbot/1.0",
   "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
   BROWSER_USER_AGENT,
