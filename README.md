@@ -114,9 +114,24 @@ npm run build && node examples/basic.mjs https://dokall.com
 
 ## Limitations
 
-- Some sites block crawlers or require JavaScript — previews may be incomplete
-- Facebook / Instagram / TikTok can change without notice; platform handlers are best-effort
-- Always validate user-supplied URLs with `validateDirectPreviewUrl` before fetching
+This library unfurls URLs with **plain `fetch` + HTML/oEmbed parsing** — no headless browser, no paid proxy API. Set expectations accordingly.
+
+### IP blocking at scale
+
+Traffic is sent **directly from your server** (or Worker), not through a residential proxy or paid unfurl service. At high volume, especially when repeatedly fetching the same hosts (Facebook, LinkedIn, Instagram, etc.), those sites may return **403**, **login walls**, or **CAPTCHA** challenges.
+
+**Bot rotation** (cycling crawler user-agents) improves success on many pages but is **best-effort only** — it does not bypass rate limits, IP reputation checks, or bot detection. For production at scale, add **rate limiting**, **caching**, and consider a proxy or dedicated preview API for hard targets.
+
+### No JavaScript rendering
+
+The library **does not execute JavaScript**. It only reads HTML returned by the initial HTTP response and platform oEmbed endpoints.
+
+Sites that are **client-rendered SPAs** without server-side Open Graph tags will often return empty or minimal metadata (blank shell HTML). Previews work best when the target page exposes **`og:*` / `twitter:*` meta tags** in the raw HTML, or when a platform oEmbed API is available.
+
+### Other notes
+
+- Facebook / Instagram / TikTok change frequently; platform handlers are maintained on a best-effort basis
+- Always validate user-supplied URLs with `validateDirectPreviewUrl` before fetching (SSRF protection)
 
 ## Related
 
