@@ -19,6 +19,9 @@ export interface LinkPreviewResponse {
 
 export interface FetchLinkPreviewOptions {}
 
-export type ValidateDirectPreviewUrlResult =
+export type ValidateLinkPreviewResult =
   | { ok: true; url: string }
   | { ok: false; error: string };
+
+/** @deprecated Use {@link ValidateLinkPreviewResult} */
+export type ValidateDirectPreviewUrlResult = ValidateLinkPreviewResult;

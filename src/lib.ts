@@ -24,7 +24,7 @@ import {
   PLATFORM_HOSTS,
   PLATFORM_REJECT_URL_PATTERNS,
 } from "@/constants";
-import type { LinkPreviewData, LinkPreviewResponse, ValidateDirectPreviewUrlResult } from "@/types";
+import type { LinkPreviewData, LinkPreviewResponse, ValidateLinkPreviewResult } from "@/types";
 
 // --- strings / urls ---
 
@@ -346,7 +346,7 @@ export function assertSafeTargetUrl(rawUrl: string) {
   return parsed.href;
 }
 
-export function validateDirectPreviewUrl(input: string): ValidateDirectPreviewUrlResult {
+export function validateLinkPreview(input: string): ValidateLinkPreviewResult {
   try {
     const url = assertSafeTargetUrl(input.trim());
     return { ok: true, url };
@@ -357,6 +357,9 @@ export function validateDirectPreviewUrl(input: string): ValidateDirectPreviewUr
     };
   }
 }
+
+/** @deprecated Use {@link validateLinkPreview} */
+export const validateDirectPreviewUrl = validateLinkPreview;
 
 // --- html / og parsing ---
 

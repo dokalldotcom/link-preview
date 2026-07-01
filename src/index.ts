@@ -8,8 +8,9 @@ export type {
   OEmbedPayload,
   PlatformDefaults,
   PlatformId,
+  ValidateLinkPreviewResult,
   ValidateDirectPreviewUrlResult,
 } from "@/types";
 
-export { assertSafeTargetUrl, validateDirectPreviewUrl } from "./lib";
-export { fetchLinkPreviewDirectOnly } from "./fetch";
+export { assertSafeTargetUrl, validateDirectPreviewUrl, validateLinkPreview } from "./lib";
+export { fetchLinkPreviewDirectOnly, getLinkPreview } from "./fetch";

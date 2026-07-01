@@ -8,7 +8,7 @@ import {
   isLinkedInUrl,
   isThreadsUrl,
   isTikTokUrl,
-  validateDirectPreviewUrl,
+  validateLinkPreview,
 } from "@/lib";
 import { fetchDirectPreviewWithCrawlers } from "./crawler";
 import { buildFinalFallback } from "./fallback";
@@ -52,12 +52,12 @@ async function resolveJunkDirectPreview(
   return null;
 }
 
-/** Direct unfurl with platform oEmbed fallback. */
-export async function fetchLinkPreviewDirectOnly(
+/** Fetch link preview metadata (Open Graph + platform oEmbed). */
+export async function getLinkPreview(
   inputUrl: string,
   options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewResponse> {
-  const validation = validateDirectPreviewUrl(inputUrl);
+  const validation = validateLinkPreview(inputUrl);
   if (!validation.ok) {
     return { ok: false, message: validation.error };
   }
@@ -95,3 +95,6 @@ export async function fetchLinkPreviewDirectOnly(
     return buildFinalFallback(url, options);
   }
 }
+
+/** @deprecated Use {@link getLinkPreview} */
+export const fetchLinkPreviewDirectOnly = getLinkPreview;

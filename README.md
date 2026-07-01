@@ -21,9 +21,9 @@ npm install @dokall/link-preview
 ## Quick start
 
 ```ts
-import { fetchLinkPreviewDirectOnly } from "@dokall/link-preview";
+import { getLinkPreview, validateLinkPreview } from "@dokall/link-preview";
 
-const result = await fetchLinkPreviewDirectOnly("https://example.com");
+const result = await getLinkPreview("https://example.com");
 
 if (result.ok && result.preview) {
   console.log(result.preview.title);
@@ -37,7 +37,7 @@ if (result.ok && result.preview) {
 ```ts
 import { validateDirectPreviewUrl } from "@dokall/link-preview";
 
-const check = validateDirectPreviewUrl("https://example.com");
+const check = validateLinkPreview("https://example.com");
 if (check.ok) {
   console.log(check.url);
 } else {
@@ -47,7 +47,7 @@ if (check.ok) {
 
 ## API
 
-### `fetchLinkPreviewDirectOnly(url, options?)`
+### `getLinkPreview(url, options?)`
 
 Returns `Promise<LinkPreviewResponse>`:
 
@@ -70,7 +70,7 @@ interface LinkPreviewData {
 }
 ```
 
-### `validateDirectPreviewUrl(input)`
+### `validateLinkPreview(input)`
 
 Returns `{ ok: true, url }` or `{ ok: false, error }`.
 
@@ -83,19 +83,19 @@ Throws if the URL is invalid or targets a blocked host (use before custom fetch 
 Works in Workers — no Node-only APIs. Example route handler:
 
 ```ts
-import { fetchLinkPreviewDirectOnly, validateDirectPreviewUrl } from "@dokall/link-preview";
+import { getLinkPreview, validateLinkPreview } from "@dokall/link-preview";
 
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url).searchParams.get("url");
     if (!url) return Response.json({ ok: false, message: "Missing url" }, { status: 400 });
 
-    const validation = validateDirectPreviewUrl(url);
+    const validation = validateLinkPreview(url);
     if (!validation.ok) {
       return Response.json({ ok: false, message: validation.error }, { status: 400 });
     }
 
-    const result = await fetchLinkPreviewDirectOnly(validation.url);
+    const result = await getLinkPreview(validation.url);
     return Response.json(result);
   },
 };
@@ -131,7 +131,7 @@ Sites that are **client-rendered SPAs** without server-side Open Graph tags will
 ### Other notes
 
 - Facebook / Instagram / TikTok change frequently; platform handlers are maintained on a best-effort basis
-- Always validate user-supplied URLs with `validateDirectPreviewUrl` before fetching (SSRF protection)
+- Always validate user-supplied URLs with `validateLinkPreview` before fetching (SSRF protection)
 
 ## Related
 

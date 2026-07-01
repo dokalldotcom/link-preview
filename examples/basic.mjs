@@ -1,8 +1,8 @@
-import { fetchLinkPreviewDirectOnly, validateDirectPreviewUrl } from "../dist/index.js";
+import { getLinkPreview, validateLinkPreview } from "../dist/index.js";
 
 const url = process.argv[2] ?? "https://github.com/dokalldotcom/link-preview";
 
-const validation = validateDirectPreviewUrl(url);
+const validation = validateLinkPreview(url);
 if (!validation.ok) {
   console.error("Invalid URL:", validation.error);
   process.exit(1);
@@ -10,7 +10,7 @@ if (!validation.ok) {
 
 console.log("Fetching preview for:", validation.url);
 
-const result = await fetchLinkPreviewDirectOnly(validation.url);
+const result = await getLinkPreview(validation.url);
 
 if (!result.ok) {
   console.error("Preview failed:", result.message ?? "unknown error");

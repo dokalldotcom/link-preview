@@ -3,6 +3,7 @@ export type {
   LinkPreviewData,
   LinkPreviewResponse,
   LinkPreviewType,
+  ValidateLinkPreviewResult,
   ValidateDirectPreviewUrlResult,
 } from "./preview";
 
