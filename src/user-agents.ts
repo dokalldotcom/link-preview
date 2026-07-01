@@ -1,7 +1,9 @@
 import {
   CHATGPT_PRIORITY_UAS,
+  CLOUDFLARE_PRIORITY_UAS,
   DIRECT_PREVIEW_USER_AGENTS,
   FACEBOOK_BOT_UA,
+  GOOGLEBOT_UA,
   type PreviewUserAgent,
 } from "@/constants";
 import { isChatGptUrl, shuffle } from "@/lib";
@@ -27,8 +29,9 @@ export function buildDirectPreviewUserAgents(inputUrl: string): PreviewUserAgent
     return [...CHATGPT_PRIORITY_UAS, ...rest];
   }
 
-  const rest = DIRECT_PREVIEW_USER_AGENTS.filter(
-    (ua: PreviewUserAgent) => ua !== FACEBOOK_BOT_UA,
+  const priority = new Set<string>([...CLOUDFLARE_PRIORITY_UAS, FACEBOOK_BOT_UA, GOOGLEBOT_UA]);
+  const rest = shuffle(
+    DIRECT_PREVIEW_USER_AGENTS.filter((ua: PreviewUserAgent) => !priority.has(ua)),
   );
-  return [FACEBOOK_BOT_UA, ...shuffle(rest)];
+  return [...CLOUDFLARE_PRIORITY_UAS, FACEBOOK_BOT_UA, ...rest];
 }

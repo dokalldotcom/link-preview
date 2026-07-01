@@ -1,5 +1,6 @@
 import {
   CHATGPT_PRIORITY_UAS,
+  CLOUDFLARE_PRIORITY_UAS,
   CRAWLER_FETCH_TIMEOUT_MS,
   CRAWLER_PARALLEL_WAVE_SIZE,
   DEFAULT_ACCEPT_LANGUAGE,
@@ -110,25 +111,36 @@ async function tryDirectPreviewFromHtml(
   return preview;
 }
 
+async function tryPreviewWave(
+  inputUrl: string,
+  wave: readonly string[],
+): Promise<LinkPreviewResponse | null> {
+  if (wave.length === 1) {
+    return tryDirectPreviewFromHtml(inputUrl, wave[0]);
+  }
+
+  const results = await Promise.all(
+    wave.map((userAgent: string) => tryDirectPreviewFromHtml(inputUrl, userAgent)),
+  );
+  return results.find((preview: LinkPreviewResponse | null) => preview?.ok) ?? null;
+}
+
 export async function fetchDirectPreviewWithCrawlers(
   inputUrl: string,
 ): Promise<LinkPreviewResponse | null> {
   const agents = buildDirectPreviewUserAgents(inputUrl);
-  const waveSize = isChatGptUrl(inputUrl) ? CHATGPT_PRIORITY_UAS.length : CRAWLER_PARALLEL_WAVE_SIZE;
+  const priorityWaveSize = isChatGptUrl(inputUrl)
+    ? CHATGPT_PRIORITY_UAS.length
+    : CLOUDFLARE_PRIORITY_UAS.length;
 
-  for (let i = 0; i < agents.length; i += waveSize) {
-    const wave = agents.slice(i, i + waveSize);
+  const priorityHit = await tryPreviewWave(inputUrl, agents.slice(0, priorityWaveSize));
+  if (priorityHit) return priorityHit;
 
-    if (wave.length === 1) {
-      const preview = await tryDirectPreviewFromHtml(inputUrl, wave[0]);
-      if (preview) return preview;
-      continue;
-    }
-
-    const results = await Promise.all(
-      wave.map((userAgent: string) => tryDirectPreviewFromHtml(inputUrl, userAgent)),
+  for (let i = priorityWaveSize; i < agents.length; i += CRAWLER_PARALLEL_WAVE_SIZE) {
+    const hit = await tryPreviewWave(
+      inputUrl,
+      agents.slice(i, i + CRAWLER_PARALLEL_WAVE_SIZE),
     );
-    const hit = results.find((preview: LinkPreviewResponse | null) => preview?.ok);
     if (hit) return hit;
   }
 
