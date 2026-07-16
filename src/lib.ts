@@ -363,10 +363,6 @@ export const validateDirectPreviewUrl = validateLinkPreview;
 
 // --- html / og parsing ---
 
-function escapeMetaProperty(value: string) {
-  return value.replace(/[\\^$*+?()|[\]{}]/g, "\\$&");
-}
-
 export function extractMetaContent(html: string, keys: string[]) {
   for (const key of keys) {
     const values = extractAllMetaContent(html, [key]);
@@ -376,31 +372,33 @@ export function extractMetaContent(html: string, keys: string[]) {
 }
 
 export function extractAllMetaContent(html: string, keys: string[]) {
+  const wanted = new Set(keys.map((k) => k.toLowerCase()));
   const values: string[] = [];
 
-  for (const key of keys) {
-    const escaped = escapeMetaProperty(key);
-    const patterns = [
-      new RegExp(
-        `<meta[^>]+(?:property|name)=["']${escaped}["'][^>]+content=["']([^"']*)["']`,
-        "gi",
-      ),
-      new RegExp(
-        `<meta[^>]+content=["']([^"']*)["'][^>]+(?:property|name)=["']${escaped}["']`,
-        "gi",
-      ),
-      new RegExp(
-        `<meta[^>]+(?:property|name=['"])${escaped}['"][^>]+content=['"]([^'"]*)['"]`,
-        "gi",
-      ),
-    ];
+  for (const metaMatch of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const tag = metaMatch[0];
 
-    for (const pattern of patterns) {
-      for (const match of html.matchAll(pattern)) {
-        const value = decodeHtmlEntities(match[1]);
-        if (value) values.push(value);
+    let nameOrProp: string | undefined;
+    let content: string | undefined;
+
+    // Parse attributes of the form key="..." or key='...'
+    for (const attrMatch of tag.matchAll(
+      /([a-zA-Z_:][a-zA-Z0-9:._-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g,
+    )) {
+      const attrName = attrMatch[1]?.toLowerCase();
+      const rawValue = attrMatch[2] ?? attrMatch[3] ?? "";
+      if (!attrName) continue;
+
+      if (attrName === "property" || attrName === "name" || attrName === "itemprop") {
+        nameOrProp = rawValue.trim().toLowerCase();
+      } else if (attrName === "content") {
+        content = rawValue;
       }
     }
+
+    if (!nameOrProp || !wanted.has(nameOrProp) || !content) continue;
+    const decoded = decodeHtmlEntities(content);
+    if (decoded) values.push(decoded);
   }
 
   return values;
