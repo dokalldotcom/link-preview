@@ -25,8 +25,13 @@ import {
   PLATFORM_REJECT_URL_PATTERNS,
 } from "@/constants";
 import type { LinkPreviewData, LinkPreviewResponse, ValidateLinkPreviewResult } from "@/types";
+import { cleanPreviewText, decodeHtmlEntities } from "./decode-html-entities";
 
-// --- strings / urls ---
+export {
+  decodeHtmlEntities,
+  findUnresolvedHtmlEntities,
+  listSupportedNamedEntities,
+} from "./decode-html-entities";
 
 export function pickString(value: unknown) {
   if (typeof value !== "string") return undefined;
@@ -43,21 +48,8 @@ export function shuffle<T>(items: readonly T[]) {
   return shuffled;
 }
 
-export function decodeHtmlEntities(value: string) {
-  return value
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&#x27;/gi, "'")
-    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)))
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .trim();
-}
-
 export function stripHtmlTags(html: string) {
-  return decodeHtmlEntities(html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+  return cleanPreviewText(html);
 }
 
 export function resolveMaybeRelativeUrl(value: string | undefined, baseUrl: string) {
