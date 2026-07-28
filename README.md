@@ -1,4 +1,4 @@
-# @dokall/link-preview [![npm](https://img.shields.io/npm/v/@dokall/link-preview.svg)](https://www.npmjs.com/package/@dokall/link-preview)
+# @dokall/link-preview [![npm](https://img.shields.io/npm/v/@dokall/link-preview.svg)](https://www.npmjs.com/package/@dokall/link-preview) [![CI](https://github.com/dokalldotcom/link-preview/actions/workflows/ci.yml/badge.svg)](https://github.com/dokalldotcom/link-preview/actions/workflows/ci.yml)
 
 Fetch link preview metadata (title, description, image, favicon) by unfurling URLs directly — Open Graph / Twitter cards, plus platform-specific oEmbed fallbacks. No Microlink, no Iframely, no paid preview API.
 
