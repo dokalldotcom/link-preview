@@ -1,14 +1,16 @@
 import { OEMBED_TIMEOUT_MS } from "@/constants";
 import { fetchHtmlWithBot } from "@/crawler";
 import { buildPreviewFromHtml } from "@/lib";
-import type { LinkPreviewData, MetaCrawlerConfig } from "@/types";
+import type { FetchLinkPreviewOptions, LinkPreviewData, MetaCrawlerConfig } from "@/types";
 
 export async function fetchMetaCrawlerPreview(
   inputUrl: string,
   config: MetaCrawlerConfig,
+  options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewData | null> {
   const fetched = await fetchHtmlWithBot(inputUrl, {
-    timeoutMs: config.timeoutMs ?? OEMBED_TIMEOUT_MS,
+    ...options,
+    timeoutMs: options?.timeoutMs ?? config.timeoutMs ?? OEMBED_TIMEOUT_MS,
     rejectSubstrings: config.rejectSubstrings,
     rejectFinalUrl: config.rejectFinalUrl,
   });

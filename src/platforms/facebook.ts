@@ -23,7 +23,8 @@ import {
   resolveMaybeRelativeUrl,
   shuffle,
 } from "@/lib";
-import type { LinkPreviewData, LinkPreviewResponse } from "@/types";
+import { noPreviewResponse, resolveFetch, resolveHeaders, resolveSignal, shouldUseFallback } from "@/options";
+import type { FetchLinkPreviewOptions, LinkPreviewData, LinkPreviewResponse } from "@/types";
 import { acceptHeaderForUserAgent } from "@/user-agents";
 
 const FACEBOOK_DEFAULTS = PLATFORM_DEFAULTS.facebook;
@@ -80,7 +81,9 @@ function headersForFacebookUserAgent(userAgent: string): Record<string, string> 
   return headers;
 }
 
-function buildFacebookUserAgentOrder(): string[] {
+function buildFacebookUserAgentOrder(options?: FetchLinkPreviewOptions): string[] {
+  if (options?.userAgent) return [options.userAgent];
+
   const postman = POSTMAN_FETCH_HEADERS["User-Agent"];
   const letters = shuffle(FACEBOOK_LETTER_USER_AGENTS).slice(0, FACEBOOK_RANDOM_LETTER_COUNT);
   return [postman, ...letters, postman];
@@ -91,14 +94,17 @@ function isFacebookLoginUrl(url: string) {
   return patterns.some((pattern) => url.toLowerCase().includes(pattern));
 }
 
-async function fetchFacebookDirectPreview(inputUrl: string): Promise<LinkPreviewData | null> {
-  for (const userAgent of buildFacebookUserAgentOrder()) {
+async function fetchFacebookDirectPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
+  for (const userAgent of buildFacebookUserAgentOrder(options)) {
     try {
-      const response = await fetch(inputUrl, {
+      const response = await resolveFetch(options)(inputUrl, {
         method: "GET",
         redirect: "follow",
-        headers: headersForFacebookUserAgent(userAgent),
-        signal: AbortSignal.timeout(FACEBOOK_FETCH_TIMEOUT_MS),
+        headers: resolveHeaders(headersForFacebookUserAgent(userAgent), options),
+        signal: resolveSignal(options, FACEBOOK_FETCH_TIMEOUT_MS),
       });
 
       if (!response.ok || isFacebookLoginUrl(response.url)) continue;
@@ -116,10 +122,17 @@ async function fetchFacebookDirectPreview(inputUrl: string): Promise<LinkPreview
   return null;
 }
 
-export async function fetchFacebookPreview(inputUrl: string): Promise<LinkPreviewResponse> {
-  const direct = await fetchFacebookDirectPreview(inputUrl);
+export async function fetchFacebookPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewResponse> {
+  const direct = await fetchFacebookDirectPreview(inputUrl, options);
   if (direct) {
     return { ok: true, preview: direct };
+  }
+
+  if (!shouldUseFallback(options)) {
+    return noPreviewResponse();
   }
 
   return buildUrlOnlyPreview(inputUrl);

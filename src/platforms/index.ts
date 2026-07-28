@@ -7,7 +7,7 @@ import {
   isXUrl,
   isYoutubeUrl,
 } from "@/lib";
-import type { LinkPreviewData } from "@/types";
+import type { FetchLinkPreviewOptions, LinkPreviewData } from "@/types";
 import { fetchInstagramPreview, fetchThreadsPreview } from "./instagram";
 import { fetchRedditPreview } from "./reddit";
 import { fetchSpotifyPreview } from "./spotify";
@@ -17,14 +17,15 @@ import { fetchYoutubePreview } from "./youtube";
 
 export async function tryDedicatedPlatformPreview(
   inputUrl: string,
+  options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewData | null> {
-  if (isXUrl(inputUrl)) return fetchXPreview(inputUrl);
-  if (isYoutubeUrl(inputUrl)) return fetchYoutubePreview(inputUrl);
-  if (isTikTokUrl(inputUrl)) return fetchTikTokPreview(inputUrl);
-  if (isInstagramUrl(inputUrl)) return fetchInstagramPreview(inputUrl);
-  if (isThreadsUrl(inputUrl)) return fetchThreadsPreview(inputUrl);
-  if (isRedditUrl(inputUrl)) return fetchRedditPreview(inputUrl);
-  if (isSpotifyUrl(inputUrl)) return fetchSpotifyPreview(inputUrl);
+  if (isXUrl(inputUrl)) return fetchXPreview(inputUrl, options);
+  if (isYoutubeUrl(inputUrl)) return fetchYoutubePreview(inputUrl, options);
+  if (isTikTokUrl(inputUrl)) return fetchTikTokPreview(inputUrl, options);
+  if (isInstagramUrl(inputUrl)) return fetchInstagramPreview(inputUrl, options);
+  if (isThreadsUrl(inputUrl)) return fetchThreadsPreview(inputUrl, options);
+  if (isRedditUrl(inputUrl)) return fetchRedditPreview(inputUrl, options);
+  if (isSpotifyUrl(inputUrl)) return fetchSpotifyPreview(inputUrl, options);
   return null;
 }
 

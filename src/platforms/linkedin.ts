@@ -6,6 +6,7 @@ import {
   PLATFORM_REJECT_URL_PATTERNS,
 } from "@/constants";
 import { buildPreviewFromHtml } from "@/lib";
+import { resolveFetch, resolveHeaders, resolveSignal } from "@/options";
 import { buildFinalFallback } from "@/fallback";
 import type { FetchLinkPreviewOptions, LinkPreviewResponse } from "@/types";
 
@@ -14,14 +15,18 @@ export async function fetchLinkedInPreview(
   options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewResponse> {
   const authwallPatterns = PLATFORM_REJECT_URL_PATTERNS.linkedin ?? [];
+  const agents = options?.userAgent ? [options.userAgent] : LINKEDIN_USER_AGENTS;
 
-  for (const userAgent of LINKEDIN_USER_AGENTS) {
+  for (const userAgent of agents) {
     try {
-      const response = await fetch(inputUrl, {
+      const response = await resolveFetch(options)(inputUrl, {
         method: "GET",
         redirect: "follow",
-        headers: { ...DEFAULT_HTML_HEADERS, "User-Agent": userAgent },
-        signal: AbortSignal.timeout(LINKEDIN_FETCH_TIMEOUT_MS),
+        headers: resolveHeaders(
+          { ...DEFAULT_HTML_HEADERS, "User-Agent": userAgent },
+          options,
+        ),
+        signal: resolveSignal(options, LINKEDIN_FETCH_TIMEOUT_MS),
       });
 
       if (response.status === LINKEDIN_AUTHWALL_STATUS) continue;

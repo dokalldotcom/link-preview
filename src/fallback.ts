@@ -1,5 +1,6 @@
 import type { FetchLinkPreviewOptions, LinkPreviewResponse } from "@/types";
 import { isFacebookUrl } from "@/lib";
+import { noPreviewResponse, shouldUseFallback, shouldUsePlatforms } from "@/options";
 import { fetchFacebookPreview } from "./platforms";
 
 export function buildUrlOnlyPreview(inputUrl: string): LinkPreviewResponse {
@@ -18,10 +19,14 @@ export function buildUrlOnlyPreview(inputUrl: string): LinkPreviewResponse {
 
 export async function buildFinalFallback(
   inputUrl: string,
-  _options?: FetchLinkPreviewOptions,
+  options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewResponse> {
-  if (isFacebookUrl(inputUrl)) {
-    return fetchFacebookPreview(inputUrl);
+  if (!shouldUseFallback(options)) {
+    return noPreviewResponse();
+  }
+
+  if (shouldUsePlatforms(options) && isFacebookUrl(inputUrl)) {
+    return fetchFacebookPreview(inputUrl, options);
   }
 
   return buildUrlOnlyPreview(inputUrl);

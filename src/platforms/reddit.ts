@@ -6,7 +6,8 @@ import {
   buildRedditOEmbedUrl,
 } from "@/constants";
 import { decodeHtmlEntities, isRedditUrl, pickString, stripHtmlTags } from "@/lib";
-import type { LinkPreviewData } from "@/types";
+import { resolveFetch, resolveHeaders, resolveSignal } from "@/options";
+import type { FetchLinkPreviewOptions, LinkPreviewData } from "@/types";
 import { fetchOEmbedJson } from "./oembed";
 
 const REDDIT_DEFAULTS = PLATFORM_DEFAULTS.reddit;
@@ -55,14 +56,20 @@ function decodeRedditPreviewImage(
   return undefined;
 }
 
-async function fetchRedditJsonPreview(inputUrl: string): Promise<LinkPreviewData | null> {
+async function fetchRedditJsonPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
   const jsonUrl = redditJsonEndpoint(inputUrl);
   if (!jsonUrl) return null;
 
   try {
-    const response = await fetch(jsonUrl, {
-      headers: { Accept: JSON_ACCEPT_HEADER, "User-Agent": BROWSER_USER_AGENT },
-      signal: AbortSignal.timeout(OEMBED_TIMEOUT_MS),
+    const response = await resolveFetch(options)(jsonUrl, {
+      headers: resolveHeaders(
+        { Accept: JSON_ACCEPT_HEADER, "User-Agent": BROWSER_USER_AGENT },
+        options,
+      ),
+      signal: resolveSignal(options, OEMBED_TIMEOUT_MS),
     });
 
     if (!response.ok) return null;
@@ -92,8 +99,11 @@ async function fetchRedditJsonPreview(inputUrl: string): Promise<LinkPreviewData
   }
 }
 
-async function fetchRedditOEmbedPreview(inputUrl: string): Promise<LinkPreviewData | null> {
-  const data = await fetchOEmbedJson(buildRedditOEmbedUrl(inputUrl));
+async function fetchRedditOEmbedPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
+  const data = await fetchOEmbedJson(buildRedditOEmbedUrl(inputUrl), options);
   if (!data) return null;
 
   const title = pickString(data.title);
@@ -115,6 +125,12 @@ async function fetchRedditOEmbedPreview(inputUrl: string): Promise<LinkPreviewDa
   };
 }
 
-export async function fetchRedditPreview(inputUrl: string): Promise<LinkPreviewData | null> {
-  return (await fetchRedditOEmbedPreview(inputUrl)) ?? fetchRedditJsonPreview(inputUrl);
+export async function fetchRedditPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
+  return (
+    (await fetchRedditOEmbedPreview(inputUrl, options)) ??
+    fetchRedditJsonPreview(inputUrl, options)
+  );
 }

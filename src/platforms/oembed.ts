@@ -1,19 +1,28 @@
 import { BROWSER_USER_AGENT, JSON_ACCEPT_HEADER, OEMBED_TIMEOUT_MS } from "@/constants";
 import { pickString } from "@/lib";
-import type { LinkPreviewData, OEmbedPayload, PlatformDefaults } from "@/types";
+import { resolveFetch, resolveHeaders, resolveSignal } from "@/options";
+import type {
+  FetchLinkPreviewOptions,
+  LinkPreviewData,
+  OEmbedPayload,
+  PlatformDefaults,
+} from "@/types";
 
 export async function fetchOEmbedJson(
   endpoint: string,
-  options?: { referer?: string },
+  options?: FetchLinkPreviewOptions & { referer?: string },
 ): Promise<OEmbedPayload | null> {
   try {
-    const response = await fetch(endpoint, {
-      headers: {
-        Accept: JSON_ACCEPT_HEADER,
-        "User-Agent": BROWSER_USER_AGENT,
-        ...(options?.referer ? { Referer: options.referer } : {}),
-      },
-      signal: AbortSignal.timeout(OEMBED_TIMEOUT_MS),
+    const response = await resolveFetch(options)(endpoint, {
+      headers: resolveHeaders(
+        {
+          Accept: JSON_ACCEPT_HEADER,
+          "User-Agent": BROWSER_USER_AGENT,
+          ...(options?.referer ? { Referer: options.referer } : {}),
+        },
+        options,
+      ),
+      signal: resolveSignal(options, OEMBED_TIMEOUT_MS),
     });
 
     if (!response.ok) return null;
