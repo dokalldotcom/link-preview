@@ -15,19 +15,33 @@ export function resolveAbortSignal(
   }
 
   const controller = new AbortController();
-  const abort = () => {
+  const abortWith = (reason: unknown) => {
     if (!controller.signal.aborted) {
-      controller.abort(signal.aborted ? signal.reason : timeoutSignal.reason);
+      controller.abort(reason);
     }
   };
 
-  if (signal.aborted || timeoutSignal.aborted) {
-    abort();
+  if (signal.aborted) {
+    abortWith(signal.reason);
+    return controller.signal;
+  }
+  if (timeoutSignal.aborted) {
+    abortWith(timeoutSignal.reason);
     return controller.signal;
   }
 
-  signal.addEventListener("abort", abort, { once: true });
-  timeoutSignal.addEventListener("abort", abort, { once: true });
+  const onExternalAbort = () => abortWith(signal.reason);
+  const onTimeoutAbort = () => abortWith(timeoutSignal.reason);
+  const cleanup = () => {
+    signal.removeEventListener("abort", onExternalAbort);
+    timeoutSignal.removeEventListener("abort", onTimeoutAbort);
+  };
+
+  signal.addEventListener("abort", onExternalAbort);
+  timeoutSignal.addEventListener("abort", onTimeoutAbort);
+  // Timeout always settles → listeners are removed even if fetch already finished.
+  controller.signal.addEventListener("abort", cleanup, { once: true });
+
   return controller.signal;
 }
 
@@ -49,13 +63,22 @@ export function resolveFetch(options?: FetchLinkPreviewOptions): FetchLike {
   return options?.fetch ?? globalThis.fetch;
 }
 
+/** Explicit `userAgent`, or `User-Agent` / `user-agent` from `headers`. */
+export function resolveUserAgent(options?: FetchLinkPreviewOptions): string | undefined {
+  if (options?.userAgent) return options.userAgent;
+  const headers = options?.headers;
+  if (!headers) return undefined;
+  return headers["User-Agent"] ?? headers["user-agent"];
+}
+
 export function resolveHeaders(
   base: Record<string, string>,
   options?: FetchLinkPreviewOptions,
 ): Record<string, string> {
   const headers = { ...base, ...options?.headers };
-  if (options?.userAgent) {
-    headers["User-Agent"] = options.userAgent;
+  const userAgent = resolveUserAgent(options);
+  if (userAgent) {
+    headers["User-Agent"] = userAgent;
   }
   return headers;
 }

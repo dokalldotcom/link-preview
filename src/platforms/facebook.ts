@@ -23,7 +23,7 @@ import {
   resolveMaybeRelativeUrl,
   shuffle,
 } from "@/lib";
-import { noPreviewResponse, resolveFetch, resolveHeaders, resolveSignal, shouldUseFallback } from "@/options";
+import { noPreviewResponse, resolveFetch, resolveHeaders, resolveSignal, resolveUserAgent, shouldUseFallback } from "@/options";
 import type { FetchLinkPreviewOptions, LinkPreviewData, LinkPreviewResponse } from "@/types";
 import { acceptHeaderForUserAgent } from "@/user-agents";
 
@@ -82,7 +82,8 @@ function headersForFacebookUserAgent(userAgent: string): Record<string, string> 
 }
 
 function buildFacebookUserAgentOrder(options?: FetchLinkPreviewOptions): string[] {
-  if (options?.userAgent) return [options.userAgent];
+  const pinned = resolveUserAgent(options);
+  if (pinned) return [pinned];
 
   const postman = POSTMAN_FETCH_HEADERS["User-Agent"];
   const letters = shuffle(FACEBOOK_LETTER_USER_AGENTS).slice(0, FACEBOOK_RANDOM_LETTER_COUNT);

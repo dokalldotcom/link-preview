@@ -92,8 +92,8 @@ interface LinkPreviewData {
 | --- | --- | --- | --- |
 | `timeoutMs` | `number` | Path-dependent (8–20s) | Override request timeout for all outgoing fetches |
 | `signal` | `AbortSignal` | — | Cancel in-flight requests; combined with `timeoutMs` |
-| `headers` | `Record<string, string>` | — | Extra headers merged into requests |
-| `userAgent` | `string` | Bot rotation | Custom `User-Agent`; skips crawler UA rotation when set |
+| `headers` | `Record<string, string>` | — | Extra headers merged into requests. A `User-Agent` here also pins the UA and skips rotation |
+| `userAgent` | `string` | Bot rotation | Custom `User-Agent`; skips crawler/platform UA rotation when set (wins over `headers`) |
 | `fallback` | `boolean` | `true` | When `false`, return `{ ok: false }` instead of a url-only preview |
 | `platforms` | `boolean` | `true` | When `false`, skip dedicated platform/oEmbed handlers and only crawl HTML |
 | `fetch` | `typeof fetch` | `globalThis.fetch` | Custom fetch (proxy, undici Agent, etc.) |

@@ -6,7 +6,7 @@ import {
   PLATFORM_REJECT_URL_PATTERNS,
 } from "@/constants";
 import { buildPreviewFromHtml } from "@/lib";
-import { resolveFetch, resolveHeaders, resolveSignal } from "@/options";
+import { resolveFetch, resolveHeaders, resolveSignal, resolveUserAgent } from "@/options";
 import { buildFinalFallback } from "@/fallback";
 import type { FetchLinkPreviewOptions, LinkPreviewResponse } from "@/types";
 
@@ -15,7 +15,8 @@ export async function fetchLinkedInPreview(
   options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewResponse> {
   const authwallPatterns = PLATFORM_REJECT_URL_PATTERNS.linkedin ?? [];
-  const agents = options?.userAgent ? [options.userAgent] : LINKEDIN_USER_AGENTS;
+  const pinned = resolveUserAgent(options);
+  const agents = pinned ? [pinned] : LINKEDIN_USER_AGENTS;
 
   for (const userAgent of agents) {
     try {

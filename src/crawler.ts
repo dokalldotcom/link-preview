@@ -13,7 +13,7 @@ import {
   resolveFetch,
   resolveHeaders,
   resolveSignal,
-  resolveTimeoutMs,
+  resolveUserAgent,
 } from "@/options";
 import type { FetchLinkPreviewOptions, HtmlFetchResult, LinkPreviewResponse } from "@/types";
 import { acceptHeaderForUserAgent, buildDirectPreviewUserAgents } from "./user-agents";
@@ -60,7 +60,7 @@ export async function fetchHtmlWithBot(
       "User-Agent": FACEBOOK_BOT_UA,
     },
     options,
-    resolveTimeoutMs(options, FETCH_TIMEOUT_MS),
+    FETCH_TIMEOUT_MS,
   );
 
   if (!fetched) return null;
@@ -142,8 +142,9 @@ export async function fetchDirectPreviewWithCrawlers(
   inputUrl: string,
   options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewResponse | null> {
-  if (options?.userAgent) {
-    return tryDirectPreviewFromHtml(inputUrl, options.userAgent, options);
+  const pinnedUserAgent = resolveUserAgent(options);
+  if (pinnedUserAgent) {
+    return tryDirectPreviewFromHtml(inputUrl, pinnedUserAgent, options);
   }
 
   const agents = buildDirectPreviewUserAgents(inputUrl);
