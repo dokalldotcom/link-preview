@@ -1,4 +1,4 @@
-# @dokall/link-preview
+# @dokall/link-preview [![npm](https://img.shields.io/npm/v/@dokall/link-preview.svg)](https://www.npmjs.com/package/@dokall/link-preview)
 
 Fetch link preview metadata (title, description, image, favicon) by unfurling URLs directly — Open Graph / Twitter cards, plus platform-specific oEmbed fallbacks. No Microlink, no Iframely, no paid preview API.
 
@@ -35,7 +35,7 @@ if (result.ok && result.preview) {
 ### Validate URL (SSRF-safe)
 
 ```ts
-import { validateDirectPreviewUrl } from "@dokall/link-preview";
+import { validateLinkPreview } from "@dokall/link-preview";
 
 const check = validateLinkPreview("https://example.com");
 if (check.ok) {
