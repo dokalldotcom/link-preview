@@ -10,6 +10,7 @@ import {
   isTikTokUrl,
   validateLinkPreview,
 } from "@/lib";
+import { shouldUsePlatforms } from "@/options";
 import { fetchDirectPreviewWithCrawlers } from "./crawler";
 import { buildFinalFallback } from "./fallback";
 import {
@@ -27,26 +28,28 @@ async function resolveJunkDirectPreview(
   preview: NonNullable<LinkPreviewResponse["preview"]>,
   options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewResponse | null> {
+  if (!shouldUsePlatforms(options)) return null;
+
   if (isTikTokUrl(url) && isJunkTikTokPreview(preview, preview.finalUrl)) {
-    const tiktok = await fetchTikTokPreview(url);
+    const tiktok = await fetchTikTokPreview(url, options);
     if (tiktok) return { ok: true, preview: tiktok };
     return buildFinalFallback(url, options);
   }
 
   if (isInstagramUrl(url) && isJunkInstagramPreview(preview)) {
-    const instagram = await fetchInstagramPreview(url);
+    const instagram = await fetchInstagramPreview(url, options);
     if (instagram) return { ok: true, preview: instagram };
     return buildFinalFallback(url, options);
   }
 
   if (isThreadsUrl(url) && isJunkThreadsPreview(preview)) {
-    const threads = await fetchThreadsPreview(url);
+    const threads = await fetchThreadsPreview(url, options);
     if (threads) return { ok: true, preview: threads };
     return buildFinalFallback(url, options);
   }
 
   if (isFacebookUrl(url) && isJunkFacebookPreview(preview, preview.finalUrl)) {
-    return fetchFacebookPreview(url);
+    return fetchFacebookPreview(url, options);
   }
 
   return null;
@@ -63,34 +66,41 @@ export async function getLinkPreview(
   }
 
   const url = validation.url;
+  const usePlatforms = shouldUsePlatforms(options);
 
-  if (isFacebookUrl(url)) {
-    return fetchFacebookPreview(url);
+  if (usePlatforms && isFacebookUrl(url)) {
+    return fetchFacebookPreview(url, options);
   }
 
-  const dedicated = await tryDedicatedPlatformPreview(url);
-  if (dedicated) {
-    return { ok: true, preview: dedicated };
+  if (usePlatforms) {
+    const dedicated = await tryDedicatedPlatformPreview(url, options);
+    if (dedicated) {
+      return { ok: true, preview: dedicated };
+    }
   }
 
-  if (isLinkedInUrl(url)) {
+  if (usePlatforms && isLinkedInUrl(url)) {
     return fetchLinkedInPreview(url, options);
   }
 
   try {
-    const direct = await fetchDirectPreviewWithCrawlers(url);
+    const direct = await fetchDirectPreviewWithCrawlers(url, options);
     if (direct?.ok && direct.preview) {
       const refined = await resolveJunkDirectPreview(url, direct.preview, options);
       return refined ?? direct;
     }
 
-    const platform = await tryDedicatedPlatformPreview(url);
-    if (platform) return { ok: true, preview: platform };
+    if (usePlatforms) {
+      const platform = await tryDedicatedPlatformPreview(url, options);
+      if (platform) return { ok: true, preview: platform };
+    }
 
     return buildFinalFallback(url, options);
   } catch {
-    const platform = await tryDedicatedPlatformPreview(url);
-    if (platform) return { ok: true, preview: platform };
+    if (usePlatforms) {
+      const platform = await tryDedicatedPlatformPreview(url, options);
+      if (platform) return { ok: true, preview: platform };
+    }
 
     return buildFinalFallback(url, options);
   }

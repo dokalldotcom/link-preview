@@ -7,7 +7,8 @@ import {
   buildXSyndicationUrl,
 } from "@/constants";
 import { pickString, stripHtmlTags, xTweetId } from "@/lib";
-import type { LinkPreviewData } from "@/types";
+import { resolveFetch, resolveHeaders, resolveSignal } from "@/options";
+import type { FetchLinkPreviewOptions, LinkPreviewData } from "@/types";
 import { fetchOEmbedJson } from "./oembed";
 
 const X_DEFAULTS = PLATFORM_DEFAULTS.x;
@@ -22,11 +23,15 @@ interface XSyndicationTweet {
 async function fetchXSyndicationPreview(
   inputUrl: string,
   tweetId: string,
+  options?: FetchLinkPreviewOptions,
 ): Promise<LinkPreviewData | null> {
   try {
-    const response = await fetch(buildXSyndicationUrl(tweetId), {
-      headers: { Accept: JSON_ACCEPT_HEADER, "User-Agent": BROWSER_USER_AGENT },
-      signal: AbortSignal.timeout(OEMBED_TIMEOUT_MS),
+    const response = await resolveFetch(options)(buildXSyndicationUrl(tweetId), {
+      headers: resolveHeaders(
+        { Accept: JSON_ACCEPT_HEADER, "User-Agent": BROWSER_USER_AGENT },
+        options,
+      ),
+      signal: resolveSignal(options, OEMBED_TIMEOUT_MS),
     });
 
     if (!response.ok) return null;
@@ -59,8 +64,11 @@ async function fetchXSyndicationPreview(
   }
 }
 
-async function fetchXOEmbedPreview(inputUrl: string): Promise<LinkPreviewData | null> {
-  const data = await fetchOEmbedJson(buildXOEmbedUrl(inputUrl));
+async function fetchXOEmbedPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
+  const data = await fetchOEmbedJson(buildXOEmbedUrl(inputUrl), options);
   if (!data) return null;
 
   const title = pickString(data.author_name);
@@ -79,12 +87,15 @@ async function fetchXOEmbedPreview(inputUrl: string): Promise<LinkPreviewData | 
   };
 }
 
-export async function fetchXPreview(inputUrl: string): Promise<LinkPreviewData | null> {
+export async function fetchXPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
   const tweetId = xTweetId(inputUrl);
   if (tweetId) {
-    const syndication = await fetchXSyndicationPreview(inputUrl, tweetId);
+    const syndication = await fetchXSyndicationPreview(inputUrl, tweetId, options);
     if (syndication) return syndication;
   }
 
-  return fetchXOEmbedPreview(inputUrl);
+  return fetchXOEmbedPreview(inputUrl, options);
 }

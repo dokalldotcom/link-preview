@@ -5,14 +5,18 @@ import {
   buildTikTokOEmbedUrl,
 } from "@/constants";
 import { isJunkTikTokPreview, pickString } from "@/lib";
-import type { LinkPreviewData } from "@/types";
+import type { FetchLinkPreviewOptions, LinkPreviewData } from "@/types";
 import { fetchOEmbedJson } from "./oembed";
 import { fetchMetaCrawlerPreview } from "./meta-crawler";
 
 const TIKTOK_DEFAULTS = PLATFORM_DEFAULTS.tiktok;
 
-async function fetchTikTokOEmbedPreview(inputUrl: string): Promise<LinkPreviewData | null> {
+async function fetchTikTokOEmbedPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
   const data = await fetchOEmbedJson(buildTikTokOEmbedUrl(inputUrl), {
+    ...options,
     referer: TIKTOK_OEMBED_REFERER,
   });
   if (!data) return null;
@@ -35,19 +39,32 @@ async function fetchTikTokOEmbedPreview(inputUrl: string): Promise<LinkPreviewDa
   };
 }
 
-async function fetchTikTokHtmlPreview(inputUrl: string): Promise<LinkPreviewData | null> {
+async function fetchTikTokHtmlPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
   const rejectPatterns = PLATFORM_REJECT_URL_PATTERNS.tiktok ?? [];
 
-  return fetchMetaCrawlerPreview(inputUrl, {
-    rejectFinalUrl: (url) =>
-      rejectPatterns.some((pattern) => url.toLowerCase().includes(pattern)),
-    isJunk: isJunkTikTokPreview,
-    siteName: TIKTOK_DEFAULTS.siteName,
-    favicon: TIKTOK_DEFAULTS.favicon,
-    type: TIKTOK_DEFAULTS.type,
-  });
+  return fetchMetaCrawlerPreview(
+    inputUrl,
+    {
+      rejectFinalUrl: (url) =>
+        rejectPatterns.some((pattern) => url.toLowerCase().includes(pattern)),
+      isJunk: isJunkTikTokPreview,
+      siteName: TIKTOK_DEFAULTS.siteName,
+      favicon: TIKTOK_DEFAULTS.favicon,
+      type: TIKTOK_DEFAULTS.type,
+    },
+    options,
+  );
 }
 
-export async function fetchTikTokPreview(inputUrl: string): Promise<LinkPreviewData | null> {
-  return (await fetchTikTokOEmbedPreview(inputUrl)) ?? fetchTikTokHtmlPreview(inputUrl);
+export async function fetchTikTokPreview(
+  inputUrl: string,
+  options?: FetchLinkPreviewOptions,
+): Promise<LinkPreviewData | null> {
+  return (
+    (await fetchTikTokOEmbedPreview(inputUrl, options)) ??
+    fetchTikTokHtmlPreview(inputUrl, options)
+  );
 }

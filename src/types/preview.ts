@@ -17,7 +17,15 @@ export interface LinkPreviewResponse {
   preview?: LinkPreviewData;
 }
 
-export interface FetchLinkPreviewOptions {}
+export interface FetchLinkPreviewOptions {
+  timeoutMs?: number;
+  signal?: AbortSignal;
+  headers?: Record<string, string>;
+  userAgent?: string;
+  fallback?: boolean;
+  platforms?: boolean;
+  fetch?: typeof globalThis.fetch;
+}
 
 export type ValidateLinkPreviewResult =
   | { ok: true; url: string }
